@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hospital Queue – Patient</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c, #4facfe, #00f2fe);
+      background-size: 400% 400%;
+      animation: gradientShift 15s ease infinite;
+      min-height: 100vh;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Enhanced animated background elements */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background-image: 
+        radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(120, 119, 198, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 60% 70%, rgba(245, 147, 251, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 90% 10%, rgba(79, 172, 254, 0.2) 0%, transparent 50%);
+      animation: floating 25s ease-in-out infinite;
+      z-index: -2;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(120deg, transparent 50%, rgba(255, 255, 255, 0.03) 50.5%, transparent 52%),
+        linear-gradient(240deg, transparent 50%, rgba(255, 255, 255, 0.03) 50.5%, transparent 52%);
+      background-size: 60px 60px;
+      animation: shimmer 20s linear infinite;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    @keyframes floating {
+      0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+      25% { transform: translate(30px, -30px) rotate(90deg) scale(1.1); }
+      50% { transform: translate(-20px, -40px) rotate(180deg) scale(0.9); }
+      75% { transform: translate(40px, 20px) rotate(270deg) scale(1.05); }
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    /* Floating particles */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 50%;
+      animation: particleFloat 15s linear infinite;
+    }
+
+    .particle:nth-child(1) { left: 10%; animation-delay: 0s; animation-duration: 20s; }
+    .particle:nth-child(2) { left: 20%; animation-delay: 2s; animation-duration: 18s; }
+    .particle:nth-child(3) { left: 30%; animation-delay: 4s; animation-duration: 22s; }
+    .particle:nth-child(4) { left: 40%; animation-delay: 6s; animation-duration: 16s; }
+    .particle:nth-child(5) { left: 50%; animation-delay: 8s; animation-duration: 24s; }
+    .particle:nth-child(6) { left: 60%; animation-delay: 10s; animation-duration: 19s; }
+    .particle:nth-child(7) { left: 70%; animation-delay: 12s; animation-duration: 21s; }
+    .particle:nth-child(8) { left: 80%; animation-delay: 14s; animation-duration: 17s; }
+    .particle:nth-child(9) { left: 90%; animation-delay: 16s; animation-duration: 23s; }
+
+    @keyframes particleFloat {
+      0% {
+        top: 100%;
+        opacity: 0;
+        transform: translateX(0) rotate(0deg) scale(0);
+      }
+      10% {
+        opacity: 1;
+        transform: translateX(10px) rotate(45deg) scale(1);
+      }
+      90% {
+        opacity: 1;
+        transform: translateX(-10px) rotate(315deg) scale(1);
+      }
+      100% {
+        top: -10%;
+        opacity: 0;
+        transform: translateX(0) rotate(360deg) scale(0);
+      }
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      color: white;
+    }
+
+    .hospital-logo {
+      width: 80px;
+      height: 80px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 15px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(20px);
+      box-shadow: 
+        0 8px 32px rgba(255, 255, 255, 0.1),
+        inset 0 2px 8px rgba(255, 255, 255, 0.2);
+      animation: logoGlow 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes logoGlow {
+      from {
+        box-shadow: 
+          0 8px 32px rgba(255, 255, 255, 0.1),
+          inset 0 2px 8px rgba(255, 255, 255, 0.2);
+      }
+      to {
+        box-shadow: 
+          0 12px 40px rgba(255, 255, 255, 0.2),
+          inset 0 2px 12px rgba(255, 255, 255, 0.3);
+      }
+    }
+
+    .logo-cross {
+      width: 40px;
+      height: 40px;
+      position: relative;
+      background: white;
+      border-radius: 4px;
+    }
+
+    .logo-cross::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 30px;
+      height: 8px;
+      background: #2563eb;
+      transform: translate(-50%, -50%);
+      border-radius: 2px;
+    }
+
+    .logo-cross::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 8px;
+      height: 30px;
+      background: #2563eb;
+      transform: translate(-50%, -50%);
+      border-radius: 2px;
+    }
+
+    .hospital-name {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 5px;
+      background: linear-gradient(135deg, #ffffff, #f0f9ff, #dbeafe);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      animation: titleShine 4s ease-in-out infinite;
+    }
+
+    @keyframes titleShine {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.2); }
+    }
+
+    .hospital-subtitle {
+      font-size: 16px;
+      opacity: 0.9;
+      font-weight: 300;
+      color: rgba(255, 255, 255, 0.9);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .card {
+      max-width: 520px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 24px;
+      box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.15),
+        0 0 0 1px rgba(255, 255, 255, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+      padding: 35px;
+      backdrop-filter: blur(30px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      position: relative;
+      overflow: hidden;
+      animation: cardFloat 6s ease-in-out infinite;
+    }
+
+    @keyframes cardFloat {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-5px) scale(1.02); }
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, 
+        #667eea 0%, 
+        #764ba2 25%, 
+        #f093fb 50%, 
+        #f5576c 75%, 
+        #4facfe 100%);
+      border-radius: 24px 24px 0 0;
+      animation: colorShift 8s linear infinite;
+    }
+
+    @keyframes colorShift {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 200% 50%; }
+    }
+
+    .card::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+      animation: cardShimmer 10s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes cardShimmer {
+      0% { transform: rotate(0deg) translate(-50%, -50%); }
+      100% { transform: rotate(360deg) translate(-50%, -50%); }
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 8px;
+      color: #1f2937;
+      font-weight: 600;
+    }
+
+    .subtitle {
+      color: #6b7280;
+      font-size: 14px;
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .qr-icon {
+      width: 20px;
+      height: 20px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border-radius: 4px;
+      position: relative;
+      animation: iconPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes iconPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .qr-icon::after {
+      content: '📱';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 12px;
+    }
+
+    .patient-type-toggle {
+      display: flex;
+      background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+      border-radius: 16px;
+      padding: 6px;
+      margin-bottom: 20px;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .toggle-option {
+      flex: 1;
+      padding: 12px;
+      text-align: center;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .toggle-option::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.6s ease;
+    }
+
+    .toggle-option:hover::before {
+      left: 100%;
+    }
+
+    .toggle-option.active {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white;
+      box-shadow: 
+        0 4px 12px rgba(37, 99, 235, 0.4),
+        0 2px 4px rgba(37, 99, 235, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .patient-id-section {
+      background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+      border: 2px solid rgba(59, 130, 246, 0.3);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+      display: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .patient-id-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, #3b82f6, #06b6d4, #3b82f6);
+      animation: borderFlow 3s linear infinite;
+    }
+
+    @keyframes borderFlow {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    .patient-id-section.show {
+      display: block;
+      animation: slideIn 0.5s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .patient-id-title {
+      color: #0369a1;
+      font-weight: 600;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    label {
+      display: block;
+      margin: 16px 0 8px;
+      font-weight: 500;
+      color: #374151;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      padding: 16px 18px;
+      border: 2px solid rgba(229, 231, 235, 0.6);
+      border-radius: 14px;
+      font-size: 16px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      background: linear-gradient(135deg, #ffffff, #f9fafb);
+      backdrop-filter: blur(10px);
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 
+        0 0 0 4px rgba(37, 99, 235, 0.1),
+        0 4px 12px rgba(37, 99, 235, 0.15);
+      transform: translateY(-2px) scale(1.02);
+      background: #ffffff;
+    }
+
+    button {
+      width: 100%;
+      padding: 18px;
+      border: 0;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #1e40af 100%);
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+      margin-top: 20px;
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 
+        0 6px 20px rgba(37, 99, 235, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.6s ease;
+    }
+
+    button:hover::before {
+      left: 100%;
+    }
+
+    button:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 
+        0 10px 30px rgba(37, 99, 235, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    button:active {
+      transform: translateY(-1px) scale(1.01);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .row {
+      display: flex;
+      gap: 15px;
+      margin-top: 5px;
+    }
+
+    .row > div {
+      flex: 1;
+    }
+
+    .panel {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f1f5f9 100%);
+      border-radius: 16px;
+      padding: 25px;
+      margin-top: 25px;
+      border: 1px solid rgba(226, 232, 240, 0.6);
+      position: relative;
+      overflow: hidden;
+      animation: panelGlow 4s ease-in-out infinite alternate;
+    }
+
+    @keyframes panelGlow {
+      from {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      }
+      to {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+      }
+    }
+
+    .panel h3 {
+      color: #1e293b;
+      margin-bottom: 15px;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel h3::before {
+      content: '🎫';
+      font-size: 20px;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .status-item {
+      background: linear-gradient(135deg, #ffffff, #f8fafc);
+      padding: 15px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .status-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .status-item label {
+      font-size: 12px;
+      color: #6b7280;
+      margin: 0 0 4px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1f2937;
+    }
+
+    .token-number {
+      color: #2563eb;
+    }
+
+    .current-serving {
+      color: #10b981;
+    }
+
+    .wait-time {
+      color: #f59e0b;
+    }
+
+    .patient-id-display {
+      color: #7c3aed;
+      background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-weight: 600;
+    }
+
+    .status-message {
+      background: linear-gradient(135deg, #ffffff, #f8fafc);
+      padding: 18px;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 500;
+      box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+
+    .ok {
+      color: #059669;
+      border-left: 4px solid #10b981;
+    }
+
+    .warn {
+      color: #d97706;
+      border-left: 4px solid #f59e0b;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+
+    .history-panel {
+      background: linear-gradient(135deg, #ffffff, #f8fafc);
+      border-radius: 12px;
+      padding: 18px;
+      margin-top: 18px;
+      box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    }
+
+    .history-title {
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .history-title::before {
+      content: '📋';
+    }
+
+    .history-content {
+      color: #6b7280;
+      font-size: 14px;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
+    .history-item {
+      background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+      border-left: 4px solid #2563eb;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 0 12px 12px 0;
+      transition: all 0.3s ease;
+    }
+
+    .history-item:hover {
+      transform: translateX(5px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .history-date {
+      font-size: 12px;
+      color: #6b7280;
+      font-weight: 600;
+    }
+
+    .history-details {
+      margin-top: 4px;
+      font-size: 13px;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .connection-status {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .connected {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+    }
+
+    .connecting {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+    }
+
+    .error {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+    }
+
+    /* Button group for status panel */
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .button-group button {
+      flex: 1;
+      margin-top: 0;
+    }
+
+    .btn-refresh {
+      background: linear-gradient(135deg, #111111 0%, #374151 50%, #111111 100%);
+    }
+
+    .btn-new-reg {
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
+    }
+
+    /* Responsive design */
+    @media (max-width: 600px) {
+      body { padding: 15px; }
+      .card { padding: 25px; border-radius: 20px; }
+      .hospital-name { font-size: 24px; }
+      .status-grid { grid-template-columns: 1fr; }
+      .row { flex-direction: column; gap: 0; }
+      .button-group { flex-direction: column; }
+    }
+
+    /* Add particles container */
+    .particles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+    }
+  </style>
+</head>
+<body>
+  <!-- Floating particles -->
+  <div class="particles">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+  </div>
+
+  
+
+  <div class="header">
+    <div class="hospital-logo">
+      <div class="logo-cross"></div>
+    </div>
+    <div class="hospital-name">City General Hospital</div>
+    <div class="hospital-subtitle">Smart Queue Management System</div>
+  </div>
+
+  <div class="card">
+    <h1>Patient Registration</h1>
+    <p class="subtitle">
+      <span class="qr-icon"></span>
+      Scan QR code → Fill details → Get your token number
+    </p>
+
+    <div class="patient-type-toggle">
+      <div class="toggle-option active" onclick="togglePatientType('new')">New Patient</div>
+      <div class="toggle-option" onclick="togglePatientType('existing')">Existing Patient</div>
+    </div>
+
+    <div class="patient-id-section" id="existingPatientSection">
+      <div class="patient-id-title">🆔 Enter Your Patient ID</div>
+      <input id="existingPatientId" placeholder="Enter your Patient ID (e.g., PAT-12345)" />
+      <button type="button" onclick="loadPatientHistory()">🔍 Load Patient Details</button>
+    </div>
+
+    <form id="form">
+      <label>Full Name</label>
+      <input id="name" placeholder="Enter your full name" required />
+
+      <div class="row">
+        <div>
+          <label>Age</label>
+          <input id="age" type="number" min="0" placeholder="25" required />
+        </div>
+        <div>
+          <label>Medical Issue</label>
+          <input id="disease" placeholder="e.g., Fever, Check-up" required />
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Phone Number</label>
+          <input id="phone" type="tel" placeholder="Enter phone number" required />
+        </div>
+        <div>
+          <label>Emergency Contact</label>
+          <input id="emergency" type="tel" placeholder="Emergency contact" />
+        </div>
+      </div>
+
+      <button type="submit">🎫 Generate Token</button>
+    </form>
+
+    <div id="status" class="panel" style="display:none">
+      <h3>Your Queue Status</h3>
+      
+      <div class="status-grid">
+        <div class="status-item">
+          <label>Your Token</label>
+          <div class="status-value token-number" id="myToken">--</div>
+        </div>
+        <div class="status-item">
+          <label>Currently Serving</label>
+          <div class="status-value current-serving" id="current">--</div>
+        </div>
+        <div class="status-item">
+          <label>Estimated Wait</label>
+          <div class="status-value wait-time"><span id="eta">--</span> mins</div>
+        </div>
+        <div class="status-item">
+          <label>Patient ID</label>
+          <div class="status-value patient-id-display" id="displayPatientId">--</div>
+        </div>
+      </div>
+
+      <div class="status-message" id="msg">
+        Checking your queue position...
+      </div>
+
+      <div class="history-panel">
+        <div class="history-title">Medical History</div>
+        <div class="history-content" id="history">Loading medical history...</div>
+      </div>
+
+      <div class="button-group">
+        <button class="btn-new-reg" onclick="resetToRegistrationForm()">🔄 New Registration</button>
+        <button class="btn-refresh" onclick="refreshPage()">🌐 Refresh Page</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDjcbx217q7e3a9SmoC3hP1hYP_YHLgIsI",
+      authDomain: "patient-databox.firebaseapp.com",
+      databaseURL: "https://patient-databox-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "patient-databox",
+      storageBucket: "patient-databox.firebasestorage.app",
+      messagingSenderId: "461458574113",
+      appId: "1:461458574113:web:e63143695e557fb0c40c60"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    // Global variables
+    let myToken = null;
+    let currentPatientId = null;
+    let isExistingPatient = false;
+
+    // DOM elements
+    const connectionStatus = document.getElementById('connectionStatus');
+    const form = document.getElementById('form');
+    const elMyToken = document.getElementById('myToken');
+    const elCurrent = document.getElementById('current');
+    const elEta = document.getElementById('eta');
+    const elMsg = document.getElementById('msg');
+    const elDisplayPatientId = document.getElementById('displayPatientId');
+    const elHistory = document.getElementById('history');
+
+    // Database references
+    const settingsRef = db.ref('settings');
+    const lastTokenRef = db.ref('state/lastToken');
+    const lastPatientIdRef = db.ref('state/lastPatientId');
+    const patientsRef = db.ref('patients');
+    const patientProfilesRef = db.ref('patientProfiles');
+
+    // Initialize Firebase connection
+    auth.signInAnonymously()
+      .then(() => {
+        connectionStatus.textContent = '✅ Connected to Firebase';
+        connectionStatus.className = 'connection-status connected';
+        console.log('✅ Firebase connected successfully!');
+      })
+      .catch(error => {
+        connectionStatus.textContent = '❌ Connection Failed';
+        connectionStatus.className = 'connection-status error';
+        console.error('❌ Firebase connection failed:', error);
+      });
+
+    // Toggle between new and existing patient
+    function togglePatientType(type) {
+      const newBtn = document.querySelector('.toggle-option:first-child');
+      const existingBtn = document.querySelector('.toggle-option:last-child');
+      const existingSection = document.getElementById('existingPatientSection');
+      
+      if (type === 'new') {
+        newBtn.classList.add('active');
+        existingBtn.classList.remove('active');
+        existingSection.classList.remove('show');
+        isExistingPatient = false;
+        currentPatientId = null;
+        clearForm();
+      } else {
+        existingBtn.classList.add('active');
+        newBtn.classList.remove('active');
+        existingSection.classList.add('show');
+        isExistingPatient = true;
+        clearForm();
+      }
+    }
+
+    // Clear form fields
+    function clearForm() {
+      document.getElementById('name').value = '';
+      document.getElementById('age').value = '';
+      document.getElementById('disease').value = '';
+      document.getElementById('phone').value = '';
+      document.getElementById('emergency').value = '';
+    }
+
+    // Generate unique patient ID
+    async function generatePatientId() {
+      try {
+        const result = await lastPatientIdRef.transaction(currentId => {
+          return (currentId || 0) + 1;
+        });
+        
+        if (result.committed) {
+          return `PAT-${String(result.snapshot.val()).padStart(5, '0')}`;
+        }
+        throw new Error('Failed to generate Patient ID');
+      } catch (error) {
+        console.error('Error generating patient ID:', error);
+        throw error;
+      }
+    }
+
+    // Load patient history
+    async function loadPatientHistory() {
+      const patientId = document.getElementById('existingPatientId').value.trim().toUpperCase();
+      
+      if (!patientId) {
+        alert('Please enter a Patient ID');
+        return;
+      }
+
+      const loadBtn = event.target;
+      loadBtn.disabled = true;
+      loadBtn.innerHTML = '<span class="loading"></span> Loading...';
+
+      try {
+        const profileSnapshot = await patientProfilesRef.child(patientId).once('value');
+        const profile = profileSnapshot.val();
+        
+        if (!profile) {
+          alert('Patient ID not found. Please check your ID or register as a new patient.');
+          return;
+        }
+
+        // Fill form with existing patient data
+        document.getElementById('name').value = profile.name || '';
+        document.getElementById('age').value = profile.age || '';
+        document.getElementById('phone').value = profile.phone || '';
+        document.getElementById('emergency').value = profile.emergencyContact || '';
+        
+        currentPatientId = patientId;
+        alert('✅ Patient details loaded successfully!');
+        
+      } catch (error) {
+        console.error('Error loading patient:', error);
+        alert('Error loading patient details. Please try again.');
+      } finally {
+        loadBtn.disabled = false;
+        loadBtn.innerHTML = '🔍 Load Patient Details';
+      }
+    }
+
+    // Display patient history
+    function displayPatientHistory(medicalHistory) {
+      if (!medicalHistory || Object.keys(medicalHistory).length === 0) {
+        elHistory.innerHTML = '<em>No previous medical records found</em>';
+        return;
+      }
+
+      let historyHTML = '';
+      Object.values(medicalHistory)
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, 5) // Show last 5 visits
+        .forEach(visit => {
+          historyHTML += `
+            <div class="history-item">
+              <div class="history-date">${new Date(visit.date).toLocaleDateString()}</div>
+              <div class="history-details">
+                <strong>Issue:</strong> ${visit.issue}<br>
+                <strong>Prescription:</strong> ${visit.prescription || 'Not available'}<br>
+                <strong>Bill:</strong> ₹${visit.bill || 0}
+              </div>
+            </div>
+          `;
+        });
+      
+      elHistory.innerHTML = historyHTML;
+    }
+
+    // Listen for queue updates
+    function listenToQueueUpdates() {
+      if (!myToken) return;
+      
+      // Listen for completion status
+      patientsRef.child(myToken).on('value', snapshot => {
+        const patientData = snapshot.val();
+        if (patientData && patientData.status === 'done') {
+          elMsg.innerHTML = `
+            <div style="background: #dcfce7; border: 2px solid #16a34a; border-radius: 8px; padding: 15px; color: #15803d;">
+              <strong>✅ Consultation Completed!</strong><br>
+              <small>You can now book a new appointment using the refresh button above.</small>
+            </div>
+          `;
+          return;
+        }
+      });
+      
+      settingsRef.on('value', snapshot => {
+        const settings = snapshot.val() || { currentServing: 0, avgConsultMins: 10 };
+        const currentServing = settings.currentServing || 0;
+        const avgTime = settings.avgConsultMins || 10;
+        
+        const position = Math.max(0, myToken - currentServing);
+        const estimatedWait = position * avgTime;
+        
+        elCurrent.textContent = currentServing;
+        elEta.textContent = estimatedWait;
+        
+        if (position === 0) {
+          elMsg.textContent = '🔔 Your turn! Please proceed to the consultation room.';
+          elMsg.className = 'status-message warn';
+        } else if (position <= 2) {
+          elMsg.textContent = '⚠ Get ready! Your turn is coming up next.';
+          elMsg.className = 'status-message warn';
+        } else {
+          elMsg.textContent = '✅ Please wait comfortably. We will notify when your turn approaches.';
+          elMsg.className = 'status-message ok';
+        }
+      });
+    }
+
+    // Complete page refresh with data clearing
+    function refreshPage() {
+      console.log('🔄 Refreshing page completely...');
+      localStorage.removeItem('myToken');
+      localStorage.removeItem('patientId');
+      localStorage.removeItem('tokenTimestamp');
+      window.location.reload();
+    }
+
+    // Reset to registration form (soft reset)
+    function resetToRegistrationForm() {
+      console.log('🔄 Resetting to registration form...');
+      
+      // Clear global variables
+      myToken = null;
+      currentPatientId = null;
+      isExistingPatient = false;
+      
+      // Clear localStorage
+      localStorage.removeItem('myToken');
+      localStorage.removeItem('patientId');
+      localStorage.removeItem('tokenTimestamp');
+      
+      // Show form, hide status
+      document.getElementById('form').style.display = 'block';
+      document.getElementById('status').style.display = 'none';
+      
+      // Reset to "New Patient" mode
+      document.querySelector('.toggle-option:first-child').classList.add('active');
+      document.querySelector('.toggle-option:last-child').classList.remove('active');
+      document.getElementById('existingPatientSection').classList.remove('show');
+      
+      // Clear all form fields
+      clearForm();
+      document.getElementById('existingPatientId').value = '';
+    }
+
+    // Handle form submission
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<span class="loading"></span> Generating Token...';
+      submitBtn.disabled = true;
+
+      try {
+        const name = document.getElementById('name').value.trim();
+        const age = parseInt(document.getElementById('age').value, 10);
+        const disease = document.getElementById('disease').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const emergency = document.getElementById('emergency').value.trim();
+        
+        // Validation
+        if (!name || !disease || isNaN(age) || age < 0 || !phone) {
+          alert('⚠ Please fill all required fields correctly!');
+          return;
+        }
+
+        // Generate or use existing patient ID
+        let patientId = currentPatientId;
+        if (!isExistingPatient) {
+          patientId = await generatePatientId();
+        }
+
+        // Generate new token number
+        const tokenResult = await lastTokenRef.transaction(currentToken => {
+          return (currentToken || 0) + 1;
+        });
+
+        if (!tokenResult.committed) {
+          throw new Error('Failed to generate token number');
+        }
+
+        myToken = tokenResult.snapshot.val();
+
+        // Save patient queue data
+        const patientData = {
+          token: myToken,
+          patientId: patientId,
+          name: name,
+          age: age,
+          disease: disease,
+          phone: phone,
+          emergencyContact: emergency,
+          status: 'waiting',
+          registeredAt: Date.now(),
+          timestamp: new Date().toISOString(),
+          isExisting: isExistingPatient
+        };
+
+        await patientsRef.child(myToken).set(patientData);
+
+        // Update patient profile
+        const profileUpdate = {
+          patientId: patientId,
+          name: name,
+          age: age,
+          phone: phone,
+          emergencyContact: emergency,
+          lastVisit: new Date().toISOString(),
+          totalVisits: firebase.database.ServerValue.increment(1)
+        };
+
+        await patientProfilesRef.child(patientId).update(profileUpdate);
+
+        // Save token to local storage
+        localStorage.setItem('myToken', String(myToken));
+        localStorage.setItem('patientId', patientId);
+
+        // Switch to status view
+        document.getElementById('form').style.display = 'none';
+        document.getElementById('status').style.display = 'block';
+        elMyToken.textContent = myToken;
+        elDisplayPatientId.textContent = patientId;
+
+        // Load and display medical history
+        if (isExistingPatient) {
+          try {
+            const profileSnapshot = await patientProfilesRef.child(patientId).once('value');
+            const profile = profileSnapshot.val();
+            if (profile && profile.medicalHistory) {
+              displayPatientHistory(profile.medicalHistory);
+            } else {
+              elHistory.innerHTML = '<em>No previous medical records found</em>';
+            }
+          } catch (error) {
+            console.error('Error loading medical history:', error);
+            elHistory.innerHTML = '<em>Error loading medical history</em>';
+          }
+        } else {
+          elHistory.innerHTML = '<em>First visit - No previous records</em>';
+        }
+
+        listenToQueueUpdates();
+
+        console.log('✅ Registration completed successfully!');
+
+      } catch (error) {
+        console.error('❌ Registration failed:', error);
+        alert('❌ Registration failed. Please try again.');
+      } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      }
+    });
+
+    // Check if user already has a token
+    const savedToken = localStorage.getItem('myToken');
+    const savedPatientId = localStorage.getItem('patientId');
+    if (savedToken && savedPatientId) {
+      myToken = parseInt(savedToken, 10);
+      currentPatientId = savedPatientId;
+      document.getElementById('form').style.display = 'none';
+      document.getElementById('status').style.display = 'block';
+      elMyToken.textContent = myToken;
+      elDisplayPatientId.textContent = currentPatientId;
+      
+      // Load patient history
+      patientProfilesRef.child(currentPatientId).once('value', snapshot => {
+        const profile = snapshot.val();
+        if (profile && profile.medicalHistory) {
+          displayPatientHistory(profile.medicalHistory);
+        } else {
+          elHistory.innerHTML = '<em>No previous medical records found</em>';
+        }
+      });
+      
+      listenToQueueUpdates();
+    }
+
+    // Initialize settings if they don't exist
+    settingsRef.once('value', snapshot => {
+      if (!snapshot.exists()) {
+        settingsRef.set({
+          currentServing: 0,
+          avgConsultMins: 10
+        });
+      }
+    });
+
+    console.log('🚀 Enhanced patient registration system loaded');
+  </script>
+</body>
+</html>
